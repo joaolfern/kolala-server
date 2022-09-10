@@ -1,0 +1,82 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              Int       @id @default(autoincrement())
+  email           String    @unique
+  status          Int       @default(1)
+  authMethod      String
+  authKey         String    @unique
+  level           String    @default("user")
+  createdReports  Report[]  @relation(name: "author")
+  targetedReports Report[]  @relation(name: "target")
+  createdEvents   Event[]   @relation(name: "createdEvents")
+  profile         Profile?
+  Mensage         Mensage[]
+  Atendee         Atendee[]
+}
+
+model Profile {
+  id               Int    @id
+  User             User   @relation(fields: [id], references: [id])
+  name             String
+  picture          String
+  twitterAccount   String
+  facebookAccount  String
+  instagramAccount String
+}
+
+model Report {
+  id        Int      @id @default(autoincrement())
+  createdAt DateTime @default(now())
+  category  Int
+  status    Int      @default(1)
+  authorId  Int
+  author    User     @relation(fields: [authorId], references: [id], name: "author")
+  targetId  Int
+  target    User     @relation(fields: [targetId], references: [id], name: "target")
+}
+
+model Event {
+  id        Int       @id @default(autoincrement())
+  createdAt DateTime  @default(now())
+  title     String
+  datetime  DateTime
+  category  Int
+  status    Int       @default(1)
+  image     String[]
+  coords    Int[]
+  authorId  Int
+  author    User      @relation(fields: [authorId], references: [id], name: "createdEvents")
+  Mensage   Mensage[]
+  Atendee   Atendee[]
+}
+
+model Atendee {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  user      User     @relation(fields: [userId], references: [id])
+  eventId   Int
+  event     Event    @relation(fields: [eventId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Mensage {
+  id         Int       @id @default(autoincrement())
+  authorId   Int
+  author     User      @relation(fields: [authorId], references: [id])
+  eventId    Int
+  event      Event     @relation(fields: [eventId], references: [id])
+  answerToId Int
+  answerTo   Mensage   @relation(fields: [answerToId], references: [id], name: "answer")
+  answeredBy Mensage[] @relation(name: "answer")
+}
