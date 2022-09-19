@@ -26,13 +26,13 @@ model User {
 }
 
 model Profile {
-  id               Int    @id
-  User             User   @relation(fields: [id], references: [id])
+  id               Int     @id
+  User             User    @relation(fields: [id], references: [id])
   name             String
   picture          String
-  twitterAccount   String
-  facebookAccount  String
-  instagramAccount String
+  twitterAccount   String?
+  facebookAccount  String?
+  instagramAccount String?
 }
 
 model Report {
