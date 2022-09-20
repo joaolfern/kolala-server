@@ -1,15 +1,18 @@
-import { Event, User } from '@prisma/client'
+import { Event, Profile, User } from '@prisma/client'
 import { client } from '..'
 import { AuthResponse, Request } from '../types/types'
 import { getGoogleUser } from '../services/googleUser'
 import { IGoogleUser } from '../types/auth'
+import jwt from 'jsonwebtoken'
 
-function login (user: User) {
-  console.log(user)
+function makeToken (user: User) {
+  const token = jwt.sign({ _id: user.authKey, }, process.env.TOKEN_SECRET)
+
+  return token
 }
 
 async function createUser (googleUser: IGoogleUser) {
-  const user = client.user.create({
+  const user = await client.user.create({
     data: {
       authKey: googleUser.sub,
       authMethod: 'google',
@@ -29,10 +32,9 @@ async function createUser (googleUser: IGoogleUser) {
 const unauthController = {
   accessToken: async (
     req: Request<{ accessToken: string }>,
-    res: AuthResponse<any>
+    res: AuthResponse<{data: { user: User, token: string, profile: Profile }} >
   ) => {
     const { accessToken } = req.body
-
     const googleUser = await getGoogleUser(accessToken)
 
     try {
@@ -40,21 +42,23 @@ const unauthController = {
         email: googleUser.email
       }})
 
-      if (systemUser) {
-        const userAuth = login(systemUser)
-        res.send(userAuth)
-        return
-      }
+      const user = systemUser || await createUser(googleUser)
+      const profile = await client.profile.findFirst({
+        where: { id: user.id }
+      })
+      const token = makeToken(user)
 
-      const createdUser = await createUser(googleUser)
-      const userAuth = login(createdUser)
-      res.send(userAuth)
-      return
+      res.status(200).send({
+        data: {
+          user,
+          profile,
+          token
+        }
+      })
     } catch (err) {
       console.log(err)
       res.status(400).json(err)
     }
-
   },
 }
 
