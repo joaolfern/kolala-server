@@ -1,6 +1,3 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -17,22 +14,22 @@ model User {
   authMethod      String
   authKey         String    @unique
   level           String    @default("user")
-  createdReports  Report[]  @relation(name: "author")
-  targetedReports Report[]  @relation(name: "target")
-  createdEvents   Event[]   @relation(name: "createdEvents")
-  profile         Profile?
-  Mensage         Mensage[]
   Atendee         Atendee[]
+  createdEvents   Event[]   @relation("createdEvents")
+  Mensage         Mensage[]
+  profile         Profile?
+  createdReports  Report[]  @relation("author")
+  targetedReports Report[]  @relation("target")
 }
 
 model Profile {
   id               Int     @id
-  User             User    @relation(fields: [id], references: [id])
   name             String
   picture          String
   twitterAccount   String?
   facebookAccount  String?
   instagramAccount String?
+  User             User    @relation(fields: [id], references: [id])
 }
 
 model Report {
@@ -41,43 +38,43 @@ model Report {
   category  Int
   status    Int      @default(1)
   authorId  Int
-  author    User     @relation(fields: [authorId], references: [id], name: "author")
   targetId  Int
-  target    User     @relation(fields: [targetId], references: [id], name: "target")
+  author    User     @relation("author", fields: [authorId], references: [id])
+  target    User     @relation("target", fields: [targetId], references: [id])
 }
 
 model Event {
   id        Int       @id @default(autoincrement())
   createdAt DateTime  @default(now())
   title     String
-  datetime  DateTime
   category  Int
   status    Int       @default(1)
   image     String[]
-  lng       Float
-  lat       Float
   authorId  Int
-  author    User      @relation(fields: [authorId], references: [id], name: "createdEvents")
-  Mensage   Mensage[]
+  datetime  DateTime
+  lat       Float
+  lng       Float
+  author    User      @relation("createdEvents", fields: [authorId], references: [id])
   Atendee   Atendee[]
+  Mensage   Mensage[]
 }
 
 model Atendee {
   id        Int      @id @default(autoincrement())
   userId    Int
-  user      User     @relation(fields: [userId], references: [id])
   eventId   Int
-  event     Event    @relation(fields: [eventId], references: [id])
   createdAt DateTime @default(now())
+  event     Event    @relation(fields: [eventId], references: [id])
+  user      User     @relation(fields: [userId], references: [id])
 }
 
 model Mensage {
   id         Int       @id @default(autoincrement())
   authorId   Int
-  author     User      @relation(fields: [authorId], references: [id])
   eventId    Int
-  event      Event     @relation(fields: [eventId], references: [id])
   answerToId Int
-  answerTo   Mensage   @relation(fields: [answerToId], references: [id], name: "answer")
-  answeredBy Mensage[] @relation(name: "answer")
+  answerTo   Mensage   @relation("answer", fields: [answerToId], references: [id])
+  author     User      @relation(fields: [authorId], references: [id])
+  event      Event     @relation(fields: [eventId], references: [id])
+  answeredBy Mensage[] @relation("answer")
 }

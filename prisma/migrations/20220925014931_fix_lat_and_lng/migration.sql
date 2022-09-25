@@ -10,3 +10,6 @@
 ALTER TABLE "Event" DROP COLUMN "coords",
 ADD COLUMN     "lat" DOUBLE PRECISION NOT NULL,
 ADD COLUMN     "lng" DOUBLE PRECISION NOT NULL;
+
+CREATE EXTENSION earthdistance CASCADE;
+CREATE INDEX events_location_idx ON "Event" USING gist (ll_to_earth(lat, lng));
