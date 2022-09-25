@@ -54,7 +54,8 @@ model Event {
   category  Int
   status    Int       @default(1)
   image     String[]
-  coords    Int[]
+  lng       Float
+  lat       Float
   authorId  Int
   author    User      @relation(fields: [authorId], references: [id], name: "createdEvents")
   Mensage   Mensage[]

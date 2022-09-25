@@ -6,7 +6,8 @@
   "main": "index.ts",
   "scripts": {
     "dev": "nodemon src/index.ts",
-    "start": "sucrase ./src -d ./build --transforms typescript,imports && node build/index.js"
+    "start": "sucrase ./src -d ./build --transforms typescript,imports && node build/index.js",
+    "studio": "prisma studio --port=5666"
   },
   "repository": {
     "type": "git",
