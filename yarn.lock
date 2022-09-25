@@ -803,6 +803,13 @@
   resolved "https://registry.yarnpkg.com/@types/json5/-/json5-0.0.29.tgz#ee28707ae94e11d2b827bcbe5270bcea7f3e71ee"
   integrity sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==
 
+"@types/jsonwebtoken@^8.5.9":
+  version "8.5.9"
+  resolved "https://registry.yarnpkg.com/@types/jsonwebtoken/-/jsonwebtoken-8.5.9.tgz#2c064ecb0b3128d837d2764aa0b117b0ff6e4586"
+  integrity sha512-272FMnFGzAVMGtu9tkr29hRL6bZj4Zs1KZNeHLnKqAvp06tAIcarTMwOh8/8bz4FmKRcMxZhZNeUAQsNLoiPhg==
+  dependencies:
+    "@types/node" "*"
+
 "@types/mime@*":
   version "3.0.1"
   resolved "https://registry.yarnpkg.com/@types/mime/-/mime-3.0.1.tgz#5f8f2bca0a5863cb69bc0b0acd88c96cb1d4ae10"
@@ -1112,6 +1119,22 @@ available-typed-arrays@^1.0.5:
   version "1.0.5"
   resolved "https://registry.yarnpkg.com/available-typed-arrays/-/available-typed-arrays-1.0.5.tgz#92f95616501069d07d10edb2fc37d3e1c65123b7"
   integrity sha512-DMD0KiN46eipeziST1LPP/STfDU0sufISXmjSgvVsoU2tqxctQeASejWcfNtxYKqETM1UxQ8sp2OrSBWpHY6sw==
+
+aws-sdk@^2.1223.0:
+  version "2.1223.0"
+  resolved "https://registry.yarnpkg.com/aws-sdk/-/aws-sdk-2.1223.0.tgz#21af315a19292256f7dac755ea334f24dabdd17e"
+  integrity sha512-WmqGVW6Nq5O3hDYbK74Ixi99BG+fClug4FgtEHYuIq52bJggQc01LOz4ti5XqmdHQhki0OqQbRPTF1oEnNbcYw==
+  dependencies:
+    buffer "4.9.2"
+    events "1.1.1"
+    ieee754 "1.1.13"
+    jmespath "0.16.0"
+    querystring "0.2.0"
+    sax "1.2.1"
+    url "0.10.3"
+    util "^0.12.4"
+    uuid "8.0.0"
+    xml2js "0.4.19"
 
 aws-sdk@^2.814.0:
   version "2.1199.0"
@@ -3395,7 +3418,7 @@ ms@2.1.3, ms@^2.1.1:
   resolved "https://registry.yarnpkg.com/ms/-/ms-2.1.3.tgz#574c8138ce1d2b5861f0b44579dbadd60c6615b2"
   integrity sha512-6FlzubTLZG3J2a/NVCAleEhjzq5oxgHyaCU9yYXvcLsvoVaHJq/s5xXI6/XXP6tz7R9xAOtHnSO/tXtF3WRTlA==
 
-multer-s3@^2.10.0:
+multer-s3@2.10.0:
   version "2.10.0"
   resolved "https://registry.yarnpkg.com/multer-s3/-/multer-s3-2.10.0.tgz#95c5a51ad0d165bcabdfd54572ded76a25b54754"
   integrity sha512-RZsiqG19C9gE82lB7v8duJ+TMIf70fWYHlIwuNcsanOH1ePBoPXZvboEQxEow9jUkk7WQsuyVA2TgriOuDrVrw==

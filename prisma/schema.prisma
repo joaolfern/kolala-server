@@ -44,19 +44,29 @@ model Report {
 }
 
 model Event {
-  id        Int       @id @default(autoincrement())
-  createdAt DateTime  @default(now())
-  title     String
-  category  Int
-  status    Int       @default(1)
-  image     String[]
-  authorId  Int
-  datetime  DateTime
-  lat       Float
-  lng       Float
-  author    User      @relation("createdEvents", fields: [authorId], references: [id])
-  Atendee   Atendee[]
-  Mensage   Mensage[]
+  id          Int          @id @default(autoincrement())
+  createdAt   DateTime     @default(now())
+  title       String
+  description String
+  category    Int
+  status      Int          @default(1)
+  authorId    Int
+  datetime    DateTime
+  lat         Float
+  lng         Float
+  icon        Int
+  author      User         @relation("createdEvents", fields: [authorId], references: [id])
+  Atendee     Atendee[]
+  Mensage     Mensage[]
+  EventImage  EventImage[]
+}
+
+model EventImage {
+  id      Int    @id @default(autoincrement())
+  key     String
+  url     String
+  eventId Int
+  event   Event  @relation(fields: [eventId], references: [id])
 }
 
 model Atendee {

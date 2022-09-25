@@ -6,7 +6,7 @@ import { IGoogleUser } from '../types/auth'
 import jwt from 'jsonwebtoken'
 
 function makeToken (user: User) {
-  const token = jwt.sign({ _id: user.authKey, }, process.env.TOKEN_SECRET)
+  const token = jwt.sign({ _id: user.id, }, process.env.TOKEN_SECRET)
 
   return token
 }
@@ -47,6 +47,9 @@ const unauthController = {
         where: { id: user.id }
       })
       const token = makeToken(user)
+
+      res.cookie('bearer-token', token)
+      res.cookie('user-id', user.id)
 
       res.status(200).send({
         data: {
