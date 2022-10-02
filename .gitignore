@@ -3,5 +3,5 @@ node_modules
 build
 build/*
 build/
-temp/uploads/*
+src/temp/uploads/*
 !tmp/uploads/.gitkeep

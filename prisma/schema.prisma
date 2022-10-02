@@ -15,7 +15,7 @@ model User {
   authKey         String    @unique
   level           String    @default("user")
   Atendee         Atendee[]
-  createdEvents   Event[]   @relation("createdEvents")
+  createdEvents   Event[]   @relation()
   Mensage         Mensage[]
   profile         Profile?
   createdReports  Report[]  @relation("author")
@@ -55,7 +55,7 @@ model Event {
   lat         Float
   lng         Float
   icon        Int
-  author      User         @relation("createdEvents", fields: [authorId], references: [id])
+  author      User         @relation(fields: [authorId], references: [id])
   Atendee     Atendee[]
   Mensage     Mensage[]
   EventImage  EventImage[]
