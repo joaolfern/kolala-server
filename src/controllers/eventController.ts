@@ -4,11 +4,72 @@ import { Multer } from 'multer'
 import { client } from '..'
 import { AuthRequest, AuthResponse, BodyRequest } from '../types/types'
 
+type EventListDatabaseItem =(Event & {
+    EventImage: {
+      url: string
+    }[]
+  })
+
+
+function formatEventListItem({  EventImage, ...item }: EventListDatabaseItem) {
+  console.log(EventImage[0]?.url)
+  return {
+    ...item,
+    image: EventImage[0]?.url
+
+  }
+}
+
 const eventController = {
-  index: async (req: BodyRequest<undefined>, res: AuthResponse<any>) => {
+  index: async (req: BodyRequest<{}> & AuthRequest, res: AuthResponse<any>) => {
+    const { userId } = req
     try {
-      const events = await client.event.findMany()
-      res.status(200).json(events)
+      const [rawOrganizingEvents, rawParticipatingEvents] = await Promise.all([
+        await client.event.findMany({
+          where: {
+            authorId: userId,
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          include: {
+            EventImage: {
+              select: {
+                url: true,
+              },
+            },
+          },
+        }),
+        await client.event.findMany({
+          where: {
+            Atendee: {
+              some: {
+                userId,
+              },
+            },
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          include: {
+            EventImage: {
+              select: {
+                url: true,
+              },
+            },
+          },
+        }),
+      ])
+
+
+      const organizingEvents = rawOrganizingEvents.map(formatEventListItem)
+      const participatingEvents = rawParticipatingEvents.map(formatEventListItem)
+
+      const data = {
+        organizingEvents,
+        participatingEvents,
+      }
+      res.status(200).json({ data })
     } catch (err) {
       console.log(err)
       res.status(400).json(err)
@@ -40,10 +101,10 @@ const eventController = {
 
       const formattedImages: EventImage[] = Array.isArray(req.files)
         ? (req.files.map((file: any) => ({
-            key: file.key || file.originalname,
+            key: file.key || file.filename,
             url:
               file.location ||
-              `${process.env.API_URL}/files/${file.key || file.originalname}`,
+              `${process.env.API_URL}/files/${file.key || file.filename}`,
             eventId,
           })) as unknown as EventImage[])
         : ([] as EventImage[])
