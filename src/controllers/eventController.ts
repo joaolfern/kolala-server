@@ -12,7 +12,6 @@ type EventListDatabaseItem =(Event & {
 
 
 function formatEventListItem({  EventImage, ...item }: EventListDatabaseItem) {
-  console.log(EventImage[0]?.url)
   return {
     ...item,
     image: EventImage[0]?.url
@@ -100,13 +99,15 @@ const eventController = {
       const { id: eventId } = createdEvent
 
       const formattedImages: EventImage[] = Array.isArray(req.files)
-        ? (req.files.map((file: any) => ({
+        ? (req.files.map((file: any) => {
+          return ({
             key: file.key || file.filename,
             url:
               file.location ||
               `${process.env.API_URL}/files/${file.key || file.filename}`,
             eventId,
-          })) as unknown as EventImage[])
+          })
+        }) as unknown as EventImage[])
         : ([] as EventImage[])
 
       await client.eventImage.createMany({
