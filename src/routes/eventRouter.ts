@@ -7,6 +7,7 @@ import verify from '../middlewares/verify'
 const eventRouter = Router()
 const upload = multer(multerConfig)
 
+eventRouter.get('/map', verify, eventController.map)
 eventRouter.get('/', verify, eventController.index)
 eventRouter.post('/', verify, upload.any(), eventController.create)
 
