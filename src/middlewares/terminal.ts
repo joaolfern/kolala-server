@@ -1,0 +1,15 @@
+import dayjs from 'dayjs'
+import { NextFunction, Request } from 'express'
+import colors from 'colors'
+
+export const terminalMiddleware = (request: Request, _, next: NextFunction) => {
+  const method = colors.dim(request.method.trim())
+  const requester = colors.blue(request.ip)
+  const path = colors.cyan(request.url)
+  const timer = colors.white(dayjs().format('HH:mm') || '')
+
+  console.info(`${timer} ${requester} ${method} ${path}`)
+  if (Object.keys(request.body).length) console.info(request.body)
+
+  return next()
+}
