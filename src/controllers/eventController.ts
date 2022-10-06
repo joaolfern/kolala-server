@@ -125,7 +125,7 @@ const eventController = {
     const lng = parseFloat(String(req.query.lng))
 
     const data = await client.$queryRaw`
-    SELECT id, icon, lat, lng, ROUND(earth_distance(ll_to_earth(${lat}, ${lng}), ll_to_earth(lat, lng))::NUMERIC, 2) AS distance
+    SELECT id, icon, lat, lng, title, ROUND(earth_distance(ll_to_earth(${lat}, ${lng}), ll_to_earth(lat, lng))::NUMERIC, 2) AS distance
     FROM
     "Event"
     WHERE
