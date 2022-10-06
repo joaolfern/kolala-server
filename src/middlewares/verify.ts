@@ -6,16 +6,14 @@ function extractCookieContent (string: string) {
 }
 
 function verify (req, res, next) {
-  const [userId, bearerToken] = req.headers?.cookie?.split?.(';')
-  const formattedUserId = parseFloat(extractCookieContent(userId))
+  const [bearerToken] = req.headers?.cookie?.split?.(';')
   const formattedBearerToken = extractCookieContent(bearerToken)
 
   if (!formattedBearerToken) return res.status(401).json('Access Denied')
 
   try {
-    const verified = jwt.verify(formattedBearerToken, process.env.TOKEN_SECRET)
-    req.verified = verified
-    req.userId = formattedUserId
+    const { userId } = jwt.verify(formattedBearerToken, process.env.TOKEN_SECRET) as { userId: number }
+    req.verified = userId
   } catch (e) {
     res.status(400).json('Invalid Token')
   }

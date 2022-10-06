@@ -6,7 +6,7 @@ import { IGoogleUser } from '../types/auth'
 import jwt from 'jsonwebtoken'
 
 function makeToken (user: User) {
-  const token = jwt.sign({ _id: user.id, }, process.env.TOKEN_SECRET)
+  const token = jwt.sign({ userId: user.id, }, process.env.TOKEN_SECRET)
 
   return token
 }
@@ -49,7 +49,6 @@ const unauthController = {
       const token = makeToken(user)
 
       res.cookie('bearer-token', token)
-      res.cookie('user-id', user.id)
 
       res.status(200).send({
         data: {
@@ -63,6 +62,35 @@ const unauthController = {
       res.status(400).json(err)
     }
   },
+  loginWithToken: async (
+    req: Request<{ token: string }>,
+    res
+  ) => {
+    const { token } = req.body
+
+    try {
+    const {userId} = jwt.verify(token, process.env.TOKEN_SECRET) as { userId: number }
+    const user = await client.user.findUnique({ where: {
+      id: userId
+    }})
+
+    const profile = await client.profile.findFirst({
+      where: { id: user.id }
+    })
+
+    res.cookie('bearer-token', token)
+
+    res.status(200).send({
+      data: {
+        user,
+        profile,
+        token
+      }
+    })
+    } catch (e) {
+      res.status(400).json('Invalid Token')
+    }
+  }
 }
 
 export default unauthController

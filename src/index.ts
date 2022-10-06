@@ -14,6 +14,7 @@ const app = express()
 app.use(cors())
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
+app.use(terminalMiddleware)
 
 app.use(
   '/files',
@@ -23,7 +24,6 @@ app.use(
 app.use('/auth/users', userRouter)
 app.use('/auth/events', eventRouter)
 app.use('/unauth', unauthRouter)
-app.use(terminalMiddleware)
 
 app.listen(process.env.DB_CONNECTION, () => console.log(`Listening at ${process.env.DB_CONNECTION}`))
 export const client = new PrismaClient()
