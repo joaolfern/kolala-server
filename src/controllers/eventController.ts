@@ -61,10 +61,17 @@ const eventController = {
       const participatingEvents =
         rawParticipatingEvents.map(formatEventListItem)
 
-      const data = {
-        organizingEvents,
-        participatingEvents,
-      }
+      const data = [
+        {
+          title: 'Organizando',
+          data: organizingEvents
+        },
+        {
+          title: 'Participando',
+          data: participatingEvents
+        }
+      ]
+
       res.status(200).json({ data })
     } catch (err) {
       console.log(err)
