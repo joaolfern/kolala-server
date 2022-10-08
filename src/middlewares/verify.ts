@@ -9,7 +9,7 @@ function verify (req, res, next) {
 
   try {
     const { userId } = jwt.verify(bearerToken, process.env.TOKEN_SECRET) as { userId: number }
-    req.verified = userId
+    req.userId = userId
   } catch (e) {
     res.status(400).json('Invalid Token')
   }
