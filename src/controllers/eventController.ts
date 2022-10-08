@@ -91,7 +91,7 @@ const eventController = {
       lat: parseFloat(String(lat)),
       lng: parseFloat(String(lng)),
       category: Number(String(category)),
-      icon: Number(String(category)),
+      icon: Number(String(icon)),
       authorId: authorId,
       datetime: new Date(datetime),
     }
