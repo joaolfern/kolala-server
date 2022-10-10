@@ -7,7 +7,8 @@
   "scripts": {
     "dev": "nodemon src/index.ts",
     "start": "sucrase ./src -d ./build --transforms typescript,imports && node build/index.js",
-    "studio": "prisma studio --port=5666"
+    "studio": "prisma studio --port=5666",
+    "migrate": "yarn prisma migrate dev"
   },
   "repository": {
     "type": "git",

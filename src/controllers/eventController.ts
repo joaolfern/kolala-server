@@ -1,7 +1,7 @@
 import { Event, EventImage } from '@prisma/client'
-import { client } from '..'
+import { prisma } from '..'
 import { AuthRequest, AuthResponse, BodyRequest } from '../types/types'
-import { Request as expressRequest, Response } from 'express'
+import { Request as expressRequest } from 'express'
 
 type EventListDatabaseItem = Event & {
   EventImage: {
@@ -21,7 +21,7 @@ const eventController = {
     const { userId } = req
     try {
       const [rawOrganizingEvents, rawParticipatingEvents] = await Promise.all([
-        await client.event.findMany({
+        await prisma.event.findMany({
           where: {
             authorId: userId,
           },
@@ -36,7 +36,7 @@ const eventController = {
             },
           },
         }),
-        await client.event.findMany({
+        await prisma.event.findMany({
           where: {
             Atendee: {
               some: {
@@ -64,12 +64,12 @@ const eventController = {
       const data = [
         {
           title: 'Organizando',
-          data: organizingEvents
+          data: organizingEvents,
         },
         {
           title: 'Participando',
-          data: participatingEvents
-        }
+          data: participatingEvents,
+        },
       ]
 
       res.status(200).json({ data })
@@ -97,7 +97,7 @@ const eventController = {
     }
 
     try {
-      const createdEvent = await client.event.create({
+      const createdEvent = await prisma.event.create({
         data,
       })
       const { id: eventId } = createdEvent
@@ -114,7 +114,7 @@ const eventController = {
           }) as unknown as EventImage[])
         : ([] as EventImage[])
 
-      await client.eventImage.createMany({
+      await prisma.eventImage.createMany({
         data: formattedImages,
       })
 
@@ -131,7 +131,7 @@ const eventController = {
     const lat = parseFloat(String(req.query.lat))
     const lng = parseFloat(String(req.query.lng))
 
-    const data = await client.$queryRaw`
+    const data = await prisma.$queryRaw`
     SELECT id, icon, lat, lng, title, ROUND(earth_distance(ll_to_earth(${lat}, ${lng}), ll_to_earth(lat, lng))::NUMERIC, 2) AS distance
     FROM
     "Event"
@@ -142,6 +142,32 @@ const eventController = {
     distance
     `
     res.status(200).json({ data })
+  },
+  details: async (
+    req: expressRequest<any, any, Event, { id: number }> & AuthRequest,
+    res: AuthResponse<any>
+  ) => {
+    const { id } = req.params
+    const parsedId = Number(id)
+
+    try {
+      const data = await prisma.event.findUnique({
+        where: { id: parsedId },
+        include: {
+          EventImage: true,
+          author: true,
+          Atendee: {
+             orderBy: {
+              createdAt: 'asc'
+             }
+          }
+        },
+      })
+
+      res.status(200).json({ data })
+    } catch (err) {
+      res.status(400).json(err)
+    }
   },
 }
 

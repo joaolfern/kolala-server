@@ -10,6 +10,8 @@ export const terminalMiddleware = (request: Request, _, next: NextFunction) => {
 
   console.info(`${timer} ${requester} ${method} ${path}`)
   if (Object.keys(request.body).length) console.info(request.body)
+  if (Object.keys(request.query).length) console.info(request.query)
+  if (Object.keys(request.params).length) console.info(request.params)
 
   return next()
 }

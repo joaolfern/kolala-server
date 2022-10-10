@@ -14,8 +14,6 @@ model User {
   authMethod      String
   authKey         String    @unique
   level           String    @default("user")
-  Atendee         Atendee[]
-  createdEvents   Event[]   @relation()
   Mensage         Mensage[]
   profile         Profile?
   createdReports  Report[]  @relation("author")
@@ -23,13 +21,15 @@ model User {
 }
 
 model Profile {
-  id               Int     @id
+  id               Int       @id
   name             String
   picture          String
   twitterAccount   String?
   facebookAccount  String?
   instagramAccount String?
-  User             User    @relation(fields: [id], references: [id])
+  User             User      @relation(fields: [id], references: [id])
+  Atendee          Atendee[]
+  createdEvents    Event[]   @relation()
 }
 
 model Report {
@@ -55,7 +55,7 @@ model Event {
   lat         Float
   lng         Float
   icon        Int
-  author      User         @relation(fields: [authorId], references: [id])
+  author      Profile      @relation(fields: [authorId], references: [id])
   Atendee     Atendee[]
   Mensage     Mensage[]
   EventImage  EventImage[]
@@ -75,7 +75,7 @@ model Atendee {
   eventId   Int
   createdAt DateTime @default(now())
   event     Event    @relation(fields: [eventId], references: [id])
-  user      User     @relation(fields: [userId], references: [id])
+  user      Profile  @relation(fields: [userId], references: [id])
 }
 
 model Mensage {

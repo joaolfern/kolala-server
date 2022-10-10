@@ -26,4 +26,4 @@ app.use('/auth/events', eventRouter)
 app.use('/unauth', unauthRouter)
 
 app.listen(process.env.DB_CONNECTION, () => console.log(`Listening at ${process.env.DB_CONNECTION}`))
-export const client = new PrismaClient()
+export const prisma = new PrismaClient()

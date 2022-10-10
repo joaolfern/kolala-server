@@ -1,5 +1,5 @@
 import { Profile, User } from '@prisma/client'
-import { client } from '..'
+import { prisma } from '..'
 import { AuthResponse, Request } from '../types/types'
 import { getGoogleUser } from '../services/googleUser'
 import { IGoogleUser } from '../types/auth'
@@ -12,7 +12,7 @@ function makeToken(user: User) {
 }
 
 async function createUser(googleUser: IGoogleUser) {
-  const user = await client.user.create({
+  const user = await prisma.user.create({
     data: {
       authKey: googleUser.sub,
       authMethod: 'google',
@@ -38,14 +38,14 @@ const unauthController = {
     const googleUser = await getGoogleUser(accessToken)
 
     try {
-      const systemUser = await client.user.findUnique({
+      const systemUser = await prisma.user.findUnique({
         where: {
           email: googleUser.email,
         },
       })
 
       const user = systemUser || (await createUser(googleUser))
-      const profile = await client.profile.findFirst({
+      const profile = await prisma.profile.findFirst({
         where: { id: user.id },
       })
       const token = makeToken(user)
@@ -71,7 +71,7 @@ const unauthController = {
       const { userId } = jwt.verify(token, process.env.TOKEN_SECRET) as {
         userId: number
       }
-      const user = await client.user.findUnique({
+      const user = await prisma.user.findUnique({
         where: {
           id: userId,
         },

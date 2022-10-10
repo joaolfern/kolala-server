@@ -9,6 +9,7 @@ const upload = multer(multerConfig)
 
 eventRouter.get('/map', verify, eventController.map)
 eventRouter.get('/', verify, eventController.index)
-eventRouter.post('/', verify, upload.any(), eventController.create)
+eventRouter.post('/', verify, upload.array('image[]', 20), eventController.create)
+eventRouter.get('/:id', verify, eventController.details)
 
 export default eventRouter
