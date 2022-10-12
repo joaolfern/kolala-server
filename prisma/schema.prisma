@@ -27,7 +27,7 @@ model Profile {
   twitterAccount   String?
   facebookAccount  String?
   instagramAccount String?
-  User             User      @relation(fields: [id], references: [id])
+  User             User      @relation(fields: [id], references: [id], onDelete: Cascade)
   Atendee          Atendee[]
   createdEvents    Event[]   @relation()
 }
@@ -39,8 +39,8 @@ model Report {
   status    Int      @default(1)
   authorId  Int
   targetId  Int
-  author    User     @relation("author", fields: [authorId], references: [id])
-  target    User     @relation("target", fields: [targetId], references: [id])
+  author    User     @relation("author", fields: [authorId], references: [id], onDelete: Cascade)
+  target    User     @relation("target", fields: [targetId], references: [id], onDelete: Cascade)
 }
 
 model Event {
@@ -55,7 +55,7 @@ model Event {
   lat         Float
   lng         Float
   icon        Int
-  author      Profile      @relation(fields: [authorId], references: [id])
+  author      Profile      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   Atendee     Atendee[]
   Mensage     Mensage[]
   EventImage  EventImage[]
@@ -66,7 +66,7 @@ model EventImage {
   key     String
   url     String
   eventId Int
-  event   Event  @relation(fields: [eventId], references: [id])
+  event   Event  @relation(fields: [eventId], references: [id], onDelete: Cascade)
 }
 
 model Atendee {
@@ -74,8 +74,8 @@ model Atendee {
   userId    Int
   eventId   Int
   createdAt DateTime @default(now())
-  event     Event    @relation(fields: [eventId], references: [id])
-  user      Profile  @relation(fields: [userId], references: [id])
+  event     Event    @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
 model Mensage {
@@ -85,6 +85,6 @@ model Mensage {
   answerToId Int
   answerTo   Mensage   @relation("answer", fields: [answerToId], references: [id])
   author     User      @relation(fields: [authorId], references: [id])
-  event      Event     @relation(fields: [eventId], references: [id])
+  event      Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
   answeredBy Mensage[] @relation("answer")
 }

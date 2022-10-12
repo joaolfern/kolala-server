@@ -215,12 +215,44 @@ const eventController = {
         }),
       ])
 
-      res.status(200).json({ data: 'Sucesso' })
+      res.status(200).json({ data: 'Evento atualizado com sucesso!' })
     } catch (err) {
       console.log(err)
       res.status(400).json(err)
     }
   },
+  delete:  async (
+    req: BodyRequest<any, any, { id: string }> & AuthRequest,
+    res: AuthResponse<any>
+  ) => {
+    const { id } = req.params
+    const parsedId = Number(id)
+    const { userId } = req
+
+    try {
+      const currentEvent = await prisma.event.findUnique({
+        where: {
+          id: parsedId,
+        },
+      })
+
+      const isUserAuthor = currentEvent.authorId === userId
+      if (!isUserAuthor)
+      return res.status(400).json({ message: 'Usuário inválido' })
+
+      await prisma.event.delete({
+        where: {
+          id: parsedId,
+        },
+      })
+
+      res.status(200).json({ data: 'Evento deletado com sucesso!' })
+    } catch (err) {
+      console.log(err)
+      res.status(400).json(err)
+    }
+  },
+
   map: async (
     req: expressRequest<any, { lat: number; lng: number }, Event> & AuthRequest,
     res: AuthResponse<any>
