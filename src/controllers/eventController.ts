@@ -16,6 +16,50 @@ function formatEventListItem({ EventImage, ...item }: EventListDatabaseItem) {
   }
 }
 
+function formatEventImageFiles(
+  files:
+    | {
+        [fieldname: string]: Express.Multer.File[]
+      }
+    | Express.Multer.File[]
+) {
+  const formattedImages: Omit<Omit<EventImage, 'eventId'>, 'id'>[] =
+    Array.isArray(files)
+      ? files.map((file: any) => {
+          return {
+            key: file.key || file.filename,
+            url:
+              file.location ||
+              `${process.env.API_URL}/files/${file.key || file.filename}`,
+          }
+        })
+      : []
+
+  return formattedImages
+}
+
+function parseStringfiedData({
+  category,
+  lat,
+  lng,
+  datetime,
+  icon,
+}: {
+  category: any
+  lat: any
+  lng: any
+  datetime: any
+  icon: any
+}) {
+  return {
+    lat: parseFloat(String(lat)),
+    lng: parseFloat(String(lng)),
+    category: Number(String(category)),
+    icon: Number(String(icon)),
+    datetime: new Date(datetime),
+  }
+}
+
 const eventController = {
   index: async (req: BodyRequest<{}> & AuthRequest, res) => {
     const { userId } = req
@@ -84,41 +128,94 @@ const eventController = {
   ) => {
     const { category, lat, lng, status, datetime, icon, ...eventRest } =
       req.body
-    const { userId: authorId } = req
+    const { userId: authorId, files } = req
 
-    const data: Omit<Event, 'status'> = {
-      ...eventRest,
-      lat: parseFloat(String(lat)),
-      lng: parseFloat(String(lng)),
-      category: Number(String(category)),
-      icon: Number(String(icon)),
-      authorId: authorId,
-      datetime: new Date(datetime),
-    }
+    const formattedImages = formatEventImageFiles(files)
+    const parsedData = parseStringfiedData({
+      category,
+      lat,
+      lng,
+      datetime,
+      icon,
+    })
 
     try {
-      const createdEvent = await prisma.event.create({
-        data,
-      })
-      const { id: eventId } = createdEvent
-
-      const formattedImages: EventImage[] = Array.isArray(req.files)
-        ? (req.files.map((file: any) => {
-            return {
-              key: file.key || file.filename,
-              url:
-                file.location ||
-                `${process.env.API_URL}/files/${file.key || file.filename}`,
-              eventId,
-            }
-          }) as unknown as EventImage[])
-        : ([] as EventImage[])
-
-      await prisma.eventImage.createMany({
-        data: formattedImages,
+      await prisma.event.create({
+        data: {
+          ...eventRest,
+          ...parsedData,
+          authorId: authorId,
+          EventImage: {
+            createMany: {
+              data: formattedImages,
+            },
+          },
+        },
       })
 
       res.status(200).json('success')
+    } catch (err) {
+      console.log(err)
+      res.status(400).json(err)
+    }
+  },
+  update: async (
+    req: BodyRequest<Event & { removedImages: string[] }, any, { id: string }> &
+      AuthRequest,
+    res: AuthResponse<any>
+  ) => {
+    const { removedImages = [], id: eventId, category, lat, lng, status, datetime, icon, ...event } = req.body
+    const { id } = req.params
+    const parsedId = Number(id)
+    const { userId, files } = req
+
+    const parsedData = parseStringfiedData({
+      category,
+      lat,
+      lng,
+      datetime,
+      icon,
+    })
+
+    try {
+      const currentEvent = await prisma.event.findUnique({
+        where: {
+          id: parsedId,
+        },
+      })
+
+      const isUserAuthor = currentEvent.authorId === userId
+      if (!isUserAuthor)
+        return res.status(400).json({ message: 'Usuário inválido' })
+
+      const parsedRemovedImages = removedImages.map(id => Number(id))
+      const newEventImages = formatEventImageFiles(files)
+
+      await Promise.all([
+        prisma.eventImage.deleteMany({
+          where: {
+            id: {
+              in: parsedRemovedImages,
+            },
+          },
+        }),
+        prisma.event.update({
+          data: {
+            ...event,
+            ...parsedData,
+            EventImage: {
+              createMany: {
+                data: newEventImages,
+              },
+            },
+          },
+          where: {
+            id: parsedId,
+          },
+        }),
+      ])
+
+      res.status(200).json({ data: 'Sucesso' })
     } catch (err) {
       console.log(err)
       res.status(400).json(err)
@@ -131,17 +228,22 @@ const eventController = {
     const lat = parseFloat(String(req.query.lat))
     const lng = parseFloat(String(req.query.lng))
 
-    const data = await prisma.$queryRaw`
-    SELECT id, icon, lat, lng, title, ROUND(earth_distance(ll_to_earth(${lat}, ${lng}), ll_to_earth(lat, lng))::NUMERIC, 2) AS distance
-    FROM
-    "Event"
-    WHERE
-    earth_box(ll_to_earth (${lat}, ${lng}), 10000) @> ll_to_earth (lat, lng)
-    AND earth_distance(ll_to_earth (${lat}, ${lng}), ll_to_earth (lat, lng)) < 10000
-    ORDER BY
-    distance
-    `
-    res.status(200).json({ data })
+    try {
+      const data = await prisma.$queryRaw`
+      SELECT id, icon, lat, lng, title, ROUND(earth_distance(ll_to_earth(${lat}, ${lng}), ll_to_earth(lat, lng))::NUMERIC, 2) AS distance
+      FROM
+      "Event"
+      WHERE
+      earth_box(ll_to_earth (${lat}, ${lng}), 10000) @> ll_to_earth (lat, lng)
+      AND earth_distance(ll_to_earth (${lat}, ${lng}), ll_to_earth (lat, lng)) < 10000
+      ORDER BY
+      distance
+      `
+      res.status(200).json({ data })
+    } catch (err) {
+      console.log(err)
+      res.status(400).json(err)
+    }
   },
   details: async (
     req: expressRequest<any, any, Event, { id: number }> & AuthRequest,
@@ -154,13 +256,17 @@ const eventController = {
       const data = await prisma.event.findUnique({
         where: { id: parsedId },
         include: {
-          EventImage: true,
+          EventImage: {
+            orderBy: {
+              id: 'desc'
+            }
+          },
           author: true,
           Atendee: {
-             orderBy: {
-              createdAt: 'asc'
-             }
-          }
+            orderBy: {
+              createdAt: 'asc',
+            },
+          },
         },
       })
 
