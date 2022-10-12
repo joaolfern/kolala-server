@@ -30,9 +30,9 @@ async function createUser(googleUser: IGoogleUser) {
 }
 
 const unauthController = {
-  accessToken: async (
+  login: async (
     req: Request<{ accessToken: string }>,
-    res: AuthResponse<{ data: { user: User; token: string; profile: Profile } }>
+    res: AuthResponse<{ data: { token: string; user: User & { profile: Profile }  } }>
   ) => {
     const { accessToken } = req.body
     const googleUser = await getGoogleUser(accessToken)
@@ -44,18 +44,18 @@ const unauthController = {
         },
       })
 
-      const user = systemUser || (await createUser(googleUser))
+      const account = systemUser || (await createUser(googleUser))
       const profile = await prisma.profile.findFirst({
-        where: { id: user.id },
+        where: { id: account.id },
       })
-      const token = makeToken(user)
+      const token = makeToken(account)
 
       res.cookie('bearerToken', token)
 
+      const user = {...account, profile}
       res.status(200).send({
         data: {
           user,
-          profile,
           token,
         },
       })
