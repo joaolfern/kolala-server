@@ -144,7 +144,7 @@ const eventController = {
         data: {
           ...eventRest,
           ...parsedData,
-          authorId: authorId,
+          authorId,
           EventImage: {
             createMany: {
               data: formattedImages,

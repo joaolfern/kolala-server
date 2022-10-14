@@ -54,6 +54,7 @@ model Event {
   datetime    DateTime
   lat         Float
   lng         Float
+  address     String
   icon        Int
   author      Profile      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   Atendee     Atendee[]
