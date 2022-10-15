@@ -2,10 +2,10 @@ import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
 import { PrismaClient } from '@prisma/client'
-import userRouter from './routes/userRouter'
-import eventRouter from './routes/eventRouter'
 import unauthRouter from './routes/unauthRouter'
 import { terminalMiddleware } from './middlewares/terminal'
+import verify from './middlewares/verify'
+import authRouter from './routes/authRouter'
 
 dotenv.config()
 
@@ -21,8 +21,7 @@ app.use(
   express.static(__dirname + '/temp/uploads')
 )
 
-app.use('/auth/users', userRouter)
-app.use('/auth/events', eventRouter)
+app.use('/auth', verify, authRouter)
 app.use('/unauth', unauthRouter)
 
 app.listen(process.env.DB_CONNECTION, () => console.log(`Listening at ${process.env.DB_CONNECTION}`))

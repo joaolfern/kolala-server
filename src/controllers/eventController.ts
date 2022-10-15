@@ -63,6 +63,7 @@ function parseStringfiedData({
 const eventController = {
   index: async (req: BodyRequest<{}> & AuthRequest, res) => {
     const { userId } = req
+
     try {
       const [rawOrganizingEvents, rawParticipatingEvents] = await Promise.all([
         await prisma.event.findMany({
