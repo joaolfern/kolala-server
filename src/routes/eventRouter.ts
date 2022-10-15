@@ -12,6 +12,6 @@ eventRouter.post('/', upload.array('image[]', 20), eventController.create)
 eventRouter.patch('/:id', upload.array('image[]', 20), eventController.update)
 eventRouter.delete('/:id', eventController.delete)
 eventRouter.get('/:id', eventController.details)
-eventRouter.post('/participate')
+eventRouter.post('/:id/attend', eventController.attend)
 
 export default eventRouter

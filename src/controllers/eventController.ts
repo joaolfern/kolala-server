@@ -165,7 +165,17 @@ const eventController = {
       AuthRequest,
     res: AuthResponse<any>
   ) => {
-    const { removedImages = [], id: eventId, category, lat, lng, status, datetime, icon, ...event } = req.body
+    const {
+      removedImages = [],
+      id: eventId,
+      category,
+      lat,
+      lng,
+      status,
+      datetime,
+      icon,
+      ...event
+    } = req.body
     const { id } = req.params
     const parsedId = Number(id)
     const { userId, files } = req
@@ -222,7 +232,7 @@ const eventController = {
       res.status(400).json(err)
     }
   },
-  delete:  async (
+  delete: async (
     req: BodyRequest<any, any, { id: string }> & AuthRequest,
     res: AuthResponse<any>
   ) => {
@@ -239,7 +249,7 @@ const eventController = {
 
       const isUserAuthor = currentEvent.authorId === userId
       if (!isUserAuthor)
-      return res.status(400).json({ message: 'Usuário inválido' })
+        return res.status(400).json({ message: 'Usuário inválido' })
 
       await prisma.event.delete({
         where: {
@@ -291,8 +301,8 @@ const eventController = {
         include: {
           EventImage: {
             orderBy: {
-              id: 'desc'
-            }
+              id: 'desc',
+            },
           },
           author: true,
           Atendee: {
@@ -304,6 +314,46 @@ const eventController = {
       })
 
       res.status(200).json({ data })
+    } catch (err) {
+      res.status(400).json(err)
+    }
+  },
+  attend: async (
+    req: expressRequest<{ id: string }> & AuthRequest,
+    res: AuthResponse<any>
+  ) => {
+    const { userId } = req
+    const eventId = Number(req.params.id)
+
+    try {
+      const atendeeRecord = await prisma.atendee.findFirst({
+        where: {
+          eventId,
+          userId,
+        },
+      })
+
+      if (atendeeRecord) {
+        await prisma.atendee.delete({
+          where: {
+            id: atendeeRecord.id,
+          },
+        })
+
+        res
+          .status(200)
+          .json({ data: { message: 'Participação delete com sucesso!' } })
+      } else {
+        await prisma.atendee.create({
+          data: {
+            userId,
+            eventId,
+          },
+        })
+        res
+          .status(200)
+          .json({ data: { message: 'Participação registrada com sucesso!' } })
+      }
     } catch (err) {
       res.status(400).json(err)
     }
