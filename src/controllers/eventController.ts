@@ -61,33 +61,27 @@ function parseStringfiedData({
 }
 
 const eventController = {
-  index: async (req: BodyRequest<{}> & AuthRequest, res) => {
-    const { userId } = req
+  listOrganizing: async (req: BodyRequest<any, { arePast: string }, { type: 'organizing' | 'participating'}> & AuthRequest, res) => {
+    const { userId, query, params } = req
+    const { arePast } = query
+    const { type } = params
 
-    try {
-      const [rawOrganizingEvents, rawParticipatingEvents] = await Promise.all([
-        await prisma.event.findMany({
-          where: {
-            authorId: userId,
-          },
-          orderBy: {
-            createdAt: 'desc',
-          },
-          include: {
-            EventImage: {
-              select: {
-                url: true,
-              },
-            },
-          },
-        }),
-        await prisma.event.findMany({
+
+    const dateFilterKey = arePast === 'true' ? 'lt' : 'gt'
+    const datetime = {
+      [dateFilterKey]: new Date()
+    }
+
+    const REQUESTS = {
+      'participating': async () => (
+         await prisma.event.findMany({
           where: {
             Atendee: {
               some: {
                 userId,
               },
             },
+            datetime
           },
           orderBy: {
             createdAt: 'desc',
@@ -98,24 +92,47 @@ const eventController = {
                 url: true,
               },
             },
+            Atendee: {
+              orderBy: {
+                createdAt: 'asc',
+              },
+            },
           },
-        }),
-      ])
+        })
+      ),
+      'organizing': async () => (
+        await prisma.event.findMany({
+          where: {
+            authorId: userId,
+            datetime
+          },
+          orderBy: {
+            createdAt: 'desc',
+          },
+          include: {
+            EventImage: {
+              select: {
+                url: true,
+              },
+            },
+            Atendee: {
+              orderBy: {
+                createdAt: 'asc',
+              },
+            },
+          },
+        })
+      )
+    }
 
-      const organizingEvents = rawOrganizingEvents.map(formatEventListItem)
-      const participatingEvents =
-        rawParticipatingEvents.map(formatEventListItem)
+    try {
+      const events = await REQUESTS[type]()
+      const formattedEvents = events.map(formatEventListItem)
 
-      const data = [
-        {
-          title: 'Organizando',
-          data: organizingEvents,
-        },
-        {
-          title: 'Participando',
-          data: participatingEvents,
-        },
-      ]
+      const data = {
+        title: type,
+        data: formattedEvents,
+      }
 
       res.status(200).json({ data })
     } catch (err) {
