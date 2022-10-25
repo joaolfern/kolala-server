@@ -2,6 +2,7 @@ import { Event, EventImage } from '@prisma/client'
 import { prisma } from '..'
 import { AuthRequest, AuthResponse, BodyRequest } from '../types/types'
 import { Request as expressRequest } from 'express'
+import { ImapFilters } from '../types/events'
 
 type EventListDatabaseItem = Event & {
   EventImage: {
@@ -282,11 +283,14 @@ const eventController = {
   },
 
   map: async (
-    req: expressRequest<any, { lat: number; lng: number }, Event> & AuthRequest,
+    req: expressRequest<any, any, Event, ImapFilters> & AuthRequest,
     res: AuthResponse<any>
   ) => {
-    const lat = parseFloat(String(req.query.lat))
-    const lng = parseFloat(String(req.query.lng))
+    const { query } = req
+
+    const lat = parseFloat(query.lat)
+    const lng = parseFloat(query.lng)
+    const distance = parseFloat(query.distance) * 1000
 
     try {
       const data = await prisma.$queryRaw`
@@ -294,8 +298,8 @@ const eventController = {
       FROM
       "Event"
       WHERE
-      earth_box(ll_to_earth (${lat}, ${lng}), 10000) @> ll_to_earth (lat, lng)
-      AND earth_distance(ll_to_earth (${lat}, ${lng}), ll_to_earth (lat, lng)) < 10000
+      earth_box(ll_to_earth (${lat}, ${lng}), ${distance}) @> ll_to_earth (lat, lng)
+      AND earth_distance(ll_to_earth (${lat}, ${lng}), ll_to_earth (lat, lng)) < ${distance}
       ORDER BY
       distance
       `
