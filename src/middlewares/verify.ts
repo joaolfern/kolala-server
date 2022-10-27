@@ -3,7 +3,7 @@ import cookie from 'cookie'
 
 function verify (req, res, next) {
   const reqCookie = req.headers?.cookie
-  const { bearerToken } = cookie.parse(reqCookie)
+  const { bearerToken } = cookie.parse(reqCookie || '')
 
   if (!bearerToken) return res.status(401).json('Access Denied')
 
