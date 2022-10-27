@@ -3,6 +3,7 @@ import { prisma } from '..'
 import { AuthRequest, AuthResponse, BodyRequest } from '../types/types'
 import { Request as expressRequest } from 'express'
 import { ImapFilters } from '../types/events'
+import dayjs from 'dayjs'
 
 type EventListDatabaseItem = Event & {
   EventImage: {
@@ -291,18 +292,28 @@ const eventController = {
     const lat = parseFloat(query.lat)
     const lng = parseFloat(query.lng)
     const distance = parseFloat(query.distance) * 1000
+    const minDateRange = (dayjs(query.minDateRange).isValid() && !!query.minDateRange) ? dayjs(query.minDateRange).toDate() : undefined
+    const maxDateRange = (dayjs(query.maxDateRange).isValid() && !!query.maxDateRange) ? dayjs(query.maxDateRange).toDate() : undefined
+    const { datetype } = query
+
+    const queryMinDate = minDateRange || (new Date())
+    const queryMaxDate = maxDateRange || (datetype === 'week' ?  dayjs().endOf('week').add(1, 'day').toDate() : dayjs().endOf('month').toDate())
+
 
     try {
       const data = await prisma.$queryRaw`
-      SELECT id, icon, lat, lng, title, ROUND(earth_distance(ll_to_earth(${lat}, ${lng}), ll_to_earth(lat, lng))::NUMERIC, 2) AS distance
+      SELECT id, icon, lat, lng, title, datetime, ROUND(earth_distance(ll_to_earth(${lat}, ${lng}), ll_to_earth(lat, lng))::NUMERIC, 2) AS distance
       FROM
       "Event"
       WHERE
-      earth_box(ll_to_earth (${lat}, ${lng}), ${distance}) @> ll_to_earth (lat, lng)
+      datetime >= ${queryMinDate}
+      AND datetime <= ${queryMaxDate}
+      AND earth_box(ll_to_earth (${lat}, ${lng}), ${distance}) @> ll_to_earth (lat, lng)
       AND earth_distance(ll_to_earth (${lat}, ${lng}), ll_to_earth (lat, lng)) < ${distance}
       ORDER BY
       distance
       `
+
       res.status(200).json({ data })
     } catch (err) {
       console.log(err)
