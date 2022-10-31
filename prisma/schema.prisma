@@ -83,8 +83,9 @@ model Mensage {
   id         Int       @id @default(autoincrement())
   authorId   Int
   eventId    Int
-  answerToId Int
-  answerTo   Mensage   @relation("answer", fields: [answerToId], references: [id])
+  content    String
+  answerToId Int?
+  answerTo   Mensage?  @relation("answer", fields: [answerToId], references: [id])
   author     User      @relation(fields: [authorId], references: [id])
   event      Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
   answeredBy Mensage[] @relation("answer")
