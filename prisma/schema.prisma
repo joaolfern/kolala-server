@@ -14,7 +14,7 @@ model User {
   authMethod      String
   authKey         String    @unique
   level           String    @default("user")
-  Mensage         Mensage[]
+  Message         Message[]
   profile         Profile?
   createdReports  Report[]  @relation("author")
   targetedReports Report[]  @relation("target")
@@ -58,7 +58,7 @@ model Event {
   icon        Int
   author      Profile      @relation(fields: [authorId], references: [id], onDelete: Cascade)
   Atendee     Atendee[]
-  Mensage     Mensage[]
+  Message     Message[]
   EventImage  EventImage[]
 }
 
@@ -79,14 +79,15 @@ model Atendee {
   user      Profile  @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
-model Mensage {
+model Message {
   id         Int       @id @default(autoincrement())
   authorId   Int
   eventId    Int
   content    String
   answerToId Int?
-  answerTo   Mensage?  @relation("answer", fields: [answerToId], references: [id])
+  answerTo   Message?  @relation("answer", fields: [answerToId], references: [id])
   author     User      @relation(fields: [authorId], references: [id])
   event      Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
-  answeredBy Mensage[] @relation("answer")
+  answeredBy Message[] @relation("answer")
+  createdAt  DateTime  @default(now())
 }

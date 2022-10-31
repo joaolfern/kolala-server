@@ -1,7 +1,7 @@
 import express from 'express'
 import dotenv from 'dotenv'
 import cors from 'cors'
-import { Mensage, PrismaClient } from '@prisma/client'
+import { PrismaClient } from '@prisma/client'
 import unauthRouter from './routes/unauthRouter'
 import { terminalMiddleware } from './middlewares/terminal'
 import verify from './middlewares/verify'
