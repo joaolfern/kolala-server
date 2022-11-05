@@ -8,7 +8,6 @@ export const terminalMiddleware = (request: Request, _, next: NextFunction) => {
   const path = colors.cyan(request.url)
   const timer = colors.white(dayjs().format('HH:mm') || '')
 
-  if (path.includes('socket.io')) return
 
   console.info(`${timer} ${requester} ${method} ${path}`)
   if (Object.keys(request.body).length) console.info(request.body)

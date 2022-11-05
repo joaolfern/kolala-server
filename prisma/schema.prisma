@@ -8,16 +8,15 @@ datasource db {
 }
 
 model User {
-  id              Int       @id @default(autoincrement())
-  email           String    @unique
-  status          Int       @default(1)
+  id              Int      @id @default(autoincrement())
+  email           String   @unique
+  status          Int      @default(1)
   authMethod      String
-  authKey         String    @unique
-  level           String    @default("user")
-  Message         Message[]
+  authKey         String   @unique
+  level           String   @default("user")
   profile         Profile?
-  createdReports  Report[]  @relation("author")
-  targetedReports Report[]  @relation("target")
+  createdReports  Report[] @relation("author")
+  targetedReports Report[] @relation("target")
 }
 
 model Profile {
@@ -30,6 +29,7 @@ model Profile {
   User             User      @relation(fields: [id], references: [id], onDelete: Cascade)
   Atendee          Atendee[]
   createdEvents    Event[]   @relation()
+  Message          Message[]
 }
 
 model Report {
@@ -86,7 +86,7 @@ model Message {
   content    String
   answerToId Int?
   answerTo   Message?  @relation("answer", fields: [answerToId], references: [id])
-  author     User      @relation(fields: [authorId], references: [id])
+  author     Profile   @relation(fields: [authorId], references: [id])
   event      Event     @relation(fields: [eventId], references: [id], onDelete: Cascade)
   answeredBy Message[] @relation("answer")
   createdAt  DateTime  @default(now())
