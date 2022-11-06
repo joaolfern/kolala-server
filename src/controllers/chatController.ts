@@ -68,7 +68,7 @@ const chatController = {
           eventId,
         },
         orderBy: {
-          createdAt: 'asc'
+          createdAt: 'desc'
         },
         include: {
           answerTo: true,
