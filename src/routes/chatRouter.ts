@@ -11,6 +11,7 @@ const chatSocketRouter = (socketIO: ChatIo.Server) => {
     socket.on('joinChat', chatSocketController.joinChat)
     socket.on('sendMessage', chatSocketController.sendMessage)
     socket.on('disconnect', chatSocketController.disconnect)
+    socket.on('deleteMessage', chatSocketController.deleteMessage)
   })
 }
 

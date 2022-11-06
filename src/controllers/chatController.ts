@@ -16,6 +16,7 @@ class ChatSocketController {
     this.joinChat = this.joinChat.bind(this)
     this.sendMessage = this.sendMessage.bind(this)
     this.disconnect = this.disconnect.bind(this)
+    this.deleteMessage = this.deleteMessage.bind(this)
   }
 
 
@@ -43,6 +44,28 @@ class ChatSocketController {
 
 
       this.socket.emit('newMessage', response)
+    } catch (err) {
+      console.log(err)
+    }
+  }
+
+  async deleteMessage({ id }: { id: number }) {
+    try {
+      const message = await prisma.message.findUnique({
+        where: {
+          id
+        }
+      })
+
+      if (message.authorId !== this.authorId) throw new Error('Access denied')
+
+      const response = await prisma.message.delete({
+        where: {
+          id
+        }
+      })
+
+      this.socket.emit('deleteMessageFromDisplay', response.id)
     } catch (err) {
       console.log(err)
     }
