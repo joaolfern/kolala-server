@@ -19,7 +19,6 @@ class ChatSocketController {
     this.deleteMessage = this.deleteMessage.bind(this)
   }
 
-
   joinChat({ eventId }: { eventId: string }) {
     this.eventId = String(eventId)
     this.socket.join(this.eventId)
@@ -38,10 +37,13 @@ class ChatSocketController {
         data,
         include: {
           author: true,
-          answerTo: true,
+          answerTo: {
+            include: {
+              author: true
+            }
+          },
         }
        })
-
 
       this.socket.emit('newMessage', response)
     } catch (err) {
@@ -94,7 +96,11 @@ const chatController = {
           createdAt: 'desc'
         },
         include: {
-          answerTo: true,
+          answerTo: {
+            include: {
+              author: true
+            }
+          },
           author: true,
         }
       })
