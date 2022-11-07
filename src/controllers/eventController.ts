@@ -331,6 +331,11 @@ const eventController = {
       const data = await prisma.event.findUnique({
         where: { id: parsedId },
         include: {
+          _count: {
+            select: {
+              Message: true
+            }
+          },
           EventImage: {
             orderBy: {
               id: 'desc',
