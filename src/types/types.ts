@@ -13,3 +13,5 @@ export namespace ChatIo {
 
   export type Server = IoServer<DefaultEventsMap, DefaultEventsMap, DefaultEventsMap, any>
 }
+
+export type _userLevels = 'user' | 'admin'
