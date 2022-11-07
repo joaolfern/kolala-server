@@ -46,6 +46,7 @@ class ChatSocketController {
        })
 
       this.socket.emit('newMessage', response)
+      this.socket.to(this.eventId).emit('newMessage', response)
     } catch (err) {
       console.log(err)
     }
