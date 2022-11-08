@@ -60,7 +60,16 @@ class ChatSocketController {
         }
       })
 
-      if (message.authorId !== this.authorId) throw new Error('Access denied')
+      const user = await prisma.user.findUnique({
+        where: {
+          id: this.authorId
+        }
+      })
+
+      const isAuthor = message.authorId === this.authorId
+      const hasLevelPermission = user.level === 'admin'
+
+      if (!isAuthor && !hasLevelPermission) throw new Error('Access denied')
 
       const response = await prisma.message.delete({
         where: {
@@ -69,6 +78,7 @@ class ChatSocketController {
       })
 
       this.socket.emit('deleteMessageFromDisplay', response.id)
+      this.socket.to(this.eventId).emit('deleteMessageFromDisplay', response.id)
     } catch (err) {
       console.log(err)
     }
