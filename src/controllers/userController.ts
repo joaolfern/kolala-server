@@ -1,6 +1,11 @@
+import { Profile } from '@prisma/client'
 import { Request } from 'express'
 import { prisma } from '..'
 import { AuthRequest, AuthResponse, BodyRequest, _userLevels } from '../types/types'
+
+function formatProfileFile (file: any): string {
+  return file.location || `${process.env.API_URL}/files/${file.key || file.filename}`
+}
 
 const userController = {
   index: async (req: Request, res: AuthResponse<any>) => {
@@ -12,7 +17,7 @@ const userController = {
       res.status(400).json(err)
     }
   },
-  profile: async (req: Request<{ id: string }>, res: AuthResponse<any>) => {
+  findProfile: async (req: Request<{ id: string }>, res: AuthResponse<any>) => {
     const { id } = req.params
     const parsedId = Number(id)
 
@@ -27,6 +32,34 @@ const userController = {
       })
 
       res.status(200).json({ data })
+    } catch (err) {
+      console.log(err)
+      res.status(400).json(err)
+    }
+  },
+  updateProfile: async (req: BodyRequest<Profile, any, { id: string }> & AuthRequest, res: AuthResponse<any>) => {
+    const { id } = req.params
+    const parsedId = Number(id)
+    const { id: _, picture: bodyPictureUrl, ...rest } = req.body
+    const { file, userId } = req
+
+    const picture = formatProfileFile(file)
+    const data = {
+      ...rest,
+      ...(file ? {picture} : {})
+    }
+
+    if (userId !== parsedId) res.status(401).json('Access denied!')
+
+    try {
+      await prisma.profile.update({
+        where: {
+          id: parsedId,
+        },
+        data
+      })
+
+      res.status(200).json('Sucesso!')
     } catch (err) {
       console.log(err)
       res.status(400).json(err)
