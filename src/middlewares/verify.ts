@@ -9,7 +9,7 @@ function verify (req, res, next) {
   const reqCookie = req.headers?.cookie
   const { bearerToken } = cookie.parse(reqCookie || '')
 
-  if (!bearerToken) return res.status(401).json('Access Denied')
+  if (!bearerToken) return res.status(401).json('Access denied!')
 
   try {
     const { userId } = decryptToken(bearerToken)

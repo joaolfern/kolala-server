@@ -8,15 +8,13 @@ datasource db {
 }
 
 model User {
-  id              Int      @id @default(autoincrement())
-  email           String   @unique
-  status          Int      @default(1)
-  authMethod      String
-  authKey         String   @unique
-  level           String   @default("user")
-  profile         Profile?
-  createdReports  Report[] @relation("author")
-  targetedReports Report[] @relation("target")
+  id         Int      @id @default(autoincrement())
+  email      String   @unique
+  status     Int      @default(1)
+  authMethod String
+  authKey    String   @unique
+  level      String   @default("user")
+  profile    Profile?
 }
 
 model Profile {
@@ -30,17 +28,20 @@ model Profile {
   Atendee          Atendee[]
   createdEvents    Event[]   @relation()
   Message          Message[]
+  createdReports   Report[]  @relation("author")
+  targetedReports  Report[]  @relation("target")
 }
 
 model Report {
-  id        Int      @id @default(autoincrement())
-  createdAt DateTime @default(now())
-  category  Int
-  status    Int      @default(1)
-  authorId  Int
-  targetId  Int
-  author    User     @relation("author", fields: [authorId], references: [id], onDelete: Cascade)
-  target    User     @relation("target", fields: [targetId], references: [id], onDelete: Cascade)
+  id          Int      @id @default(autoincrement())
+  createdAt   DateTime @default(now())
+  category    Int
+  status      Int      @default(0)
+  authorId    Int
+  targetId    Int
+  description String?
+  author      Profile  @relation("author", fields: [authorId], references: [id], onDelete: Cascade)
+  target      Profile  @relation("target", fields: [targetId], references: [id], onDelete: Cascade)
 }
 
 model Event {

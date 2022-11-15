@@ -82,7 +82,7 @@ const userController = {
         }
       })
 
-      if (author.level === 'user') res.status(4001).json('Access Denied!')
+      if (author.level === 'user') res.status(4001).json('Access denied!')
 
       await prisma.user.update({
         where: {
@@ -97,29 +97,7 @@ const userController = {
     } catch (err) {
       console.error(err)
     }
-  },
-  createReport: async (
-    req: BodyRequest<{ category: string }, undefined, { targetId: string }> &
-      AuthRequest,
-    res: AuthResponse<any>
-  ) => {
-    const { body } = req
-    const targetId = Number(req.params.targetId)
-    const authorId = Number(req.userId)
-    const category = Number(body.category)
-    try {
-    } catch (err) {
-      await prisma.report.create({
-        data: {
-          authorId,
-          category,
-          targetId,
-        },
-      })
-
-      res.status(200).json('Sucesso!')
-    }
-  },
+  }
 }
 
 export default userController

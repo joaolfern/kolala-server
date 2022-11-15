@@ -32,7 +32,7 @@ async function createUser(googleUser: IGoogleUser) {
 const unauthController = {
   login: async (
     req: Request<{ accessToken: string }>,
-    res: AuthResponse<{ data: { token: string; user: User & { profile: Profile }  } }>
+    res: AuthResponse<{ data: { token: string; user: User & { profile: Profile } } } | string>
   ) => {
     const { accessToken } = req.body
     const googleUser = await getGoogleUser(accessToken)
@@ -43,6 +43,8 @@ const unauthController = {
           email: googleUser.email,
         },
       })
+
+      if (systemUser.status === 0) res.status(401).json('Acesso bloqueado, conta suspensa.')
 
       const account = systemUser || (await createUser(googleUser))
       const profile = await prisma.profile.findFirst({
