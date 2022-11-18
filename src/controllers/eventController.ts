@@ -302,7 +302,7 @@ const eventController = {
 
     try {
       const data = await prisma.$queryRaw`
-      SELECT id, icon, lat, lng, title, datetime, ROUND(earth_distance(ll_to_earth(${lat}, ${lng}), ll_to_earth(lat, lng))::NUMERIC, 2) AS distance
+      SELECT id, icon, lat, lng, title, datetime, address, ROUND(earth_distance(ll_to_earth(${lat}, ${lng}), ll_to_earth(lat, lng))::NUMERIC, 2) AS distance
       FROM
       "Event"
       WHERE
