@@ -97,6 +97,42 @@ const userController = {
     } catch (err) {
       console.error(err)
     }
+  },
+  updateStatus: async (
+    req: BodyRequest<{ status: string }, undefined, { targetId: string }> &
+      AuthRequest,
+    res: AuthResponse<any>
+  ) => {
+    const { body, params, userId: authorId } = req
+    const status = Number(body.status)
+    const targetId = Number(params.targetId)
+
+
+    try {
+      const author = await prisma.user.findUnique({
+        where: {
+          id: authorId
+        }
+      })
+
+      if (author.level === 'user') res.status(4001).json('Access denied!')
+
+      async function banUser(id: number) {
+        await prisma.user.update({
+          where: {
+            id
+          },
+          data: {
+            status
+          }
+        })
+      }
+
+      await banUser(targetId)
+    } catch (err) {
+      console.error(err)
+    }
+
   }
 }
 

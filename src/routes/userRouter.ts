@@ -10,6 +10,6 @@ userRouter.get('/', userController.index)
 userRouter.get('/profile/:id', userController.findProfile)
 userRouter.patch('/profile/:id', upload.single('picture'), userController.updateProfile)
 userRouter.post('/promote/:targetId', userController.promote)
-
+userRouter.patch('/status/:targetId', userController.updateStatus)
 
 export default userRouter
