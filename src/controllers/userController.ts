@@ -4,7 +4,7 @@ import { prisma } from '..'
 import { AuthRequest, AuthResponse, BodyRequest, _userLevels } from '../types/types'
 
 function formatProfileFile (file: any): string {
-  return file.location || `${process.env.API_URL}/files/${file.key || file.filename}`
+  return file?.location || `${process.env.API_URL}/files/${file.key || file.filename}`
 }
 
 const userController = {
@@ -43,13 +43,13 @@ const userController = {
     const { id: _, picture: bodyPictureUrl, ...rest } = req.body
     const { file, userId } = req
 
-    const picture = formatProfileFile(file)
+    const picture = file ? formatProfileFile(file) : undefined
     const data = {
       ...rest,
       ...(file ? {picture} : {})
     }
 
-    if (userId !== parsedId) res.status(401).json('Access denied!')
+    if (userId !== parsedId) return res.status(401).json('Access denied!')
 
     try {
       await prisma.profile.update({
