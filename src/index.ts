@@ -35,7 +35,7 @@ app.use('/files', express.static(__dirname + '/temp/uploads'))
 app.use('/auth', verify, authRouter)
 app.use('/unauth', unauthRouter)
 
-server.listen(process.env.DB_CONNECTION, () =>
-  console.log(`Listening at ${process.env.DB_CONNECTION}`)
+server.listen(process.env.PORT, () =>
+  console.log(`Listening at ${process.env.PORT}`)
 )
 export const prisma = new PrismaClient()
