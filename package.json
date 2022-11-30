@@ -8,7 +8,8 @@
     "dev": "nodemon src/index.ts",
     "start": "sucrase ./src -d ./build --transforms typescript,imports && node build/index.js",
     "studio": "prisma studio --port=5666",
-    "migrate": "yarn prisma migrate dev"
+    "migrate": "yarn prisma migrate dev",
+    "serve": "lt --port 3333 --subdomain koalala"
   },
   "repository": {
     "type": "git",
