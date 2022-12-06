@@ -175,12 +175,14 @@ const eventController = {
     }
 
     try {
-      await eventValidator.create.validate(toBeValidatedInput, { abortEarly: false }).catch(err => {
-        const formattedErrors = yupToFormErrors(err)
+      await eventValidator.create
+        .validate(toBeValidatedInput, { abortEarly: false })
+        .catch(err => {
+          const formattedErrors = yupToFormErrors(err)
 
-        res.status(400).json(formattedErrors)
-        throw new Error()
-      })
+          res.status(400).json(formattedErrors)
+          throw new Error()
+        })
     } catch (err) {
       return
     }
@@ -233,20 +235,55 @@ const eventController = {
       icon,
     })
 
+    let currentEventImageCount = 0
+
     try {
       const currentEvent = await prisma.event.findUnique({
         where: {
           id: parsedId,
         },
+        include: {
+          EventImage: true
+        }
       })
 
       const isUserAuthor = currentEvent.authorId === userId
       if (!isUserAuthor)
         return res.status(400).json({ message: 'Usuário inválido' })
 
-      const parsedRemovedImages = removedImages.map(id => Number(id))
-      const newEventImages = formatEventImageFiles(files)
+      currentEventImageCount = currentEvent.EventImage.length
+      } catch (err) {
+      console.log(err)
+      res.status(400).json(err)
+    }
 
+    const parsedRemovedImages = removedImages.map(id => Number(id))
+    const newEventImages = formatEventImageFiles(files)
+
+
+    const toBeValidatedInput = {
+      ...event,
+      ...formattedData,
+      image: newEventImages,
+      removedImages: parsedRemovedImages,
+    }
+
+    const removingImagesCount = parsedRemovedImages.length
+
+    try {
+      await eventValidator.update({ removingImagesCount, currentEventImageCount })
+        .validate(toBeValidatedInput, { abortEarly: false })
+        .catch(err => {
+          const formattedErrors = yupToFormErrors(err)
+
+          res.status(400).json(formattedErrors)
+          throw new Error()
+        })
+    } catch (err) {
+      return
+    }
+
+    try {
       await Promise.all([
         prisma.eventImage.deleteMany({
           where: {
