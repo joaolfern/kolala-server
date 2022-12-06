@@ -4,6 +4,9 @@ import { AuthRequest, AuthResponse, BodyRequest } from '../types/types'
 import { Request as expressRequest } from 'express'
 import { ImapFilters } from '../types/events'
 import dayjs from 'dayjs'
+import eventValidator from '../validations/eventValidator'
+import { ifItExists, ifNumberExists } from '../utils/ifItExists'
+import yupToFormErrors from '../utils/yupToFormErrors'
 
 type EventListDatabaseItem = Event & {
   EventImage: {
@@ -54,36 +57,43 @@ function parseStringfiedData({
   icon: any
 }) {
   return {
-    lat: parseFloat(String(lat)),
-    lng: parseFloat(String(lng)),
-    category: Number(String(category)),
-    icon: Number(String(icon)),
-    datetime: new Date(datetime),
+    lat: ifItExists(lat)(parseFloat),
+    lng: ifItExists(lng)(parseFloat),
+    category: ifNumberExists(category),
+    icon: ifNumberExists(icon),
+    datetime: ifItExists(datetime)((props: string) => new Date(props)),
   }
 }
 
 const eventController = {
-  listOrganizing: async (req: BodyRequest<any, { arePast: string }, { type: 'organizing' | 'participating'}> & AuthRequest, res) => {
+  listOrganizing: async (
+    req: BodyRequest<
+      any,
+      { arePast: string },
+      { type: 'organizing' | 'participating' }
+    > &
+      AuthRequest,
+    res
+  ) => {
     const { userId, query, params } = req
     const { arePast } = query
     const { type } = params
 
-
     const dateFilterKey = arePast === 'true' ? 'lt' : 'gt'
     const datetime = {
-      [dateFilterKey]: new Date()
+      [dateFilterKey]: new Date(),
     }
 
     const REQUESTS = {
-      'participating': async () => (
-         await prisma.event.findMany({
+      participating: async () =>
+        await prisma.event.findMany({
           where: {
             Atendee: {
               some: {
                 userId,
               },
             },
-            datetime
+            datetime,
           },
           orderBy: {
             createdAt: 'desc',
@@ -100,13 +110,12 @@ const eventController = {
               },
             },
           },
-        })
-      ),
-      'organizing': async () => (
+        }),
+      organizing: async () =>
         await prisma.event.findMany({
           where: {
             authorId: userId,
-            datetime
+            datetime,
           },
           orderBy: {
             createdAt: 'desc',
@@ -123,8 +132,7 @@ const eventController = {
               },
             },
           },
-        })
-      )
+        }),
     }
 
     try {
@@ -151,7 +159,7 @@ const eventController = {
     const { userId: authorId, files } = req
 
     const formattedImages = formatEventImageFiles(files)
-    const parsedData = parseStringfiedData({
+    const formattedData = parseStringfiedData({
       category,
       lat,
       lng,
@@ -159,19 +167,37 @@ const eventController = {
       icon,
     })
 
+    const toBeValidatedInput = {
+      ...formattedData,
+      ...eventRest,
+      authorId,
+      image: formattedImages,
+    }
+
     try {
-      await prisma.event.create({
-        data: {
-          ...eventRest,
-          ...parsedData,
-          authorId,
-          EventImage: {
-            createMany: {
-              data: formattedImages,
-            },
-          },
-        },
+      await eventValidator.create.validate(toBeValidatedInput, { abortEarly: false }).catch(err => {
+        const formattedErrors = yupToFormErrors(err)
+
+        res.status(400).json(formattedErrors)
+        throw new Error()
       })
+    } catch (err) {
+      return
+    }
+
+    const data = {
+      ...eventRest,
+      ...formattedData,
+      authorId,
+      EventImage: {
+        createMany: {
+          data: formattedImages,
+        },
+      },
+    }
+
+    try {
+      await prisma.event.create({ data })
 
       res.status(200).json('success')
     } catch (err) {
@@ -199,7 +225,7 @@ const eventController = {
     const parsedId = Number(id)
     const { userId, files } = req
 
-    const parsedData = parseStringfiedData({
+    const formattedData = parseStringfiedData({
       category,
       lat,
       lng,
@@ -232,7 +258,7 @@ const eventController = {
         prisma.event.update({
           data: {
             ...event,
-            ...parsedData,
+            ...formattedData,
             EventImage: {
               createMany: {
                 data: newEventImages,
@@ -292,13 +318,22 @@ const eventController = {
     const lat = parseFloat(query.lat)
     const lng = parseFloat(query.lng)
     const distance = parseFloat(query.distance) * 1000
-    const minDateRange = (dayjs(query.minDateRange).isValid() && !!query.minDateRange) ? dayjs(query.minDateRange).toDate() : undefined
-    const maxDateRange = (dayjs(query.maxDateRange).isValid() && !!query.maxDateRange) ? dayjs(query.maxDateRange).toDate() : undefined
+    const minDateRange =
+      dayjs(query.minDateRange).isValid() && !!query.minDateRange
+        ? dayjs(query.minDateRange).toDate()
+        : undefined
+    const maxDateRange =
+      dayjs(query.maxDateRange).isValid() && !!query.maxDateRange
+        ? dayjs(query.maxDateRange).toDate()
+        : undefined
     const { datetype } = query
 
-    const queryMinDate = minDateRange || (new Date())
-    const queryMaxDate = maxDateRange || (datetype === 'week' ?  dayjs().endOf('week').add(1, 'day').toDate() : dayjs().endOf('month').toDate())
-
+    const queryMinDate = minDateRange || new Date()
+    const queryMaxDate =
+      maxDateRange ||
+      (datetype === 'week'
+        ? dayjs().endOf('week').add(1, 'day').toDate()
+        : dayjs().endOf('month').toDate())
 
     try {
       const data = await prisma.$queryRaw`
@@ -333,8 +368,8 @@ const eventController = {
         include: {
           _count: {
             select: {
-              Message: true
-            }
+              Message: true,
+            },
           },
           EventImage: {
             orderBy: {
