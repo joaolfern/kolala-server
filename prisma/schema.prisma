@@ -21,9 +21,9 @@ model Profile {
   id               Int       @id
   name             String
   picture          String
-  twitterAccount   String?
-  facebookAccount  String?
-  instagramAccount String?
+  twitterAccount   String?   @default("")
+  facebookAccount  String?   @default("")
+  instagramAccount String?   @default("")
   User             User      @relation(fields: [id], references: [id], onDelete: Cascade)
   Atendee          Atendee[]
   createdEvents    Event[]   @relation()
