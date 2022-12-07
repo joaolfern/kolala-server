@@ -32,7 +32,7 @@ function formatEventImageFiles(
     Array.isArray(files)
       ? files.map((file: any) => {
           return {
-            key: file.key || file.filename,
+            key: file.key || file.filename.replace(/ /g, '-'),
             url:
               file.location ||
               `${process.env.API_URL}/files/${file.key || file.filename}`,

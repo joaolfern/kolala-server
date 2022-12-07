@@ -1,10 +1,20 @@
 import { Profile } from '@prisma/client'
 import { Request } from 'express'
 import { prisma } from '..'
-import { AuthRequest, AuthResponse, BodyRequest, _userLevels } from '../types/types'
+import {
+  AuthRequest,
+  AuthResponse,
+  BodyRequest,
+  _userLevels,
+} from '../types/types'
 
-function formatProfileFile (file: any): string {
-  return file?.location || `${process.env.API_URL}/files/${file.key || file.filename}`
+function formatProfileFile(file: any): string {
+  return (
+    file?.location ||
+    `${process.env.API_URL}/files/${
+      file.key || file.filename.replace(/ /g, '-')
+    }`
+  )
 }
 
 const userController = {
@@ -27,8 +37,8 @@ const userController = {
           id: parsedId,
         },
         include: {
-          User: true
-        }
+          User: true,
+        },
       })
 
       res.status(200).json({ data })
@@ -37,7 +47,10 @@ const userController = {
       res.status(400).json(err)
     }
   },
-  updateProfile: async (req: BodyRequest<Profile, any, { id: string }> & AuthRequest, res: AuthResponse<any>) => {
+  updateProfile: async (
+    req: BodyRequest<Profile, any, { id: string }> & AuthRequest,
+    res: AuthResponse<any>
+  ) => {
     const { id } = req.params
     const parsedId = Number(id)
     const { id: _, picture: bodyPictureUrl, ...rest } = req.body
@@ -46,7 +59,7 @@ const userController = {
     const picture = file ? formatProfileFile(file) : undefined
     const data = {
       ...rest,
-      ...(file ? {picture} : {})
+      ...(file ? { picture } : {}),
     }
 
     if (userId !== parsedId) return res.status(401).json('Access denied!')
@@ -56,7 +69,7 @@ const userController = {
         where: {
           id: parsedId,
         },
-        data
+        data,
       })
 
       res.status(200).json('Sucesso!')
@@ -75,11 +88,10 @@ const userController = {
     const targetId = Number(req.params.targetId)
 
     try {
-
       const author = await prisma.user.findUnique({
         where: {
-          id: authorId
-        }
+          id: authorId,
+        },
       })
 
       if (author.level === 'user') res.status(4001).json('Access denied!')
@@ -89,13 +101,14 @@ const userController = {
           id: targetId,
         },
         data: {
-          level
-        }
+          level,
+        },
       })
 
       res.status(200).json('Sucesso!')
     } catch (err) {
       console.error(err)
+      res.status(400).json(err)
     }
   },
   updateStatus: async (
@@ -107,12 +120,11 @@ const userController = {
     const status = Number(body.status)
     const targetId = Number(params.targetId)
 
-
     try {
       const author = await prisma.user.findUnique({
         where: {
-          id: authorId
-        }
+          id: authorId,
+        },
       })
 
       if (author.level === 'user') res.status(4001).json('Access denied!')
@@ -120,19 +132,19 @@ const userController = {
       async function banUser(id: number) {
         await prisma.user.update({
           where: {
-            id
+            id,
           },
           data: {
-            status
-          }
+            status,
+          },
         })
       }
 
       await banUser(targetId)
     } catch (err) {
       console.error(err)
+      res.status(400).json(err)
     }
-
   }
 }
 
