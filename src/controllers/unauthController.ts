@@ -44,7 +44,10 @@ const unauthController = {
         },
       })
 
-      if (systemUser && systemUser.status === 0) res.status(401).json('Acesso bloqueado, conta suspensa.')
+      if (systemUser && systemUser.status === 0) {
+        res.status(401).json('Acesso bloqueado, conta suspensa.')
+        return
+      }
 
       const account = systemUser || (await createUser(googleUser))
       const profile = await prisma.profile.findFirst({
