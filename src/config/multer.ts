@@ -4,8 +4,8 @@ import aws from 'aws-sdk'
 import multerS3 from 'multer-s3'
 import getUniqueSuffix from '../utils/getUniqueSuffix'
 
-const storageTypes = {
-  local: multer.diskStorage({
+const getStorageType = {
+  local: () => multer.diskStorage({
     destination: (req, file, cb) => {
       cb(null, path.resolve(__dirname, '..', 'temp', 'uploads'))
     },
@@ -15,7 +15,7 @@ const storageTypes = {
       cb(null, uniqueSuffix + file.originalname)
     },
   }),
-  s3: multerS3({
+  s3: () => multerS3({
     s3: new aws.S3(),
     bucket: process.env.AWS_BUCKET,
     contentType: multerS3.AUTO_CONTENT_TYPE,
@@ -30,7 +30,7 @@ const storageTypes = {
 
 const multerConfig = {
   dest: path.resolve(__dirname, '..', 'temp', 'uploads'),
-  storage: storageTypes[process.env.STORAGE_TYPE],
+  storage: getStorageType[process.env.STORAGE_TYPE || 'local'](),
   limits: {
     fileSize: 6 * 1024 * 1024,
   },

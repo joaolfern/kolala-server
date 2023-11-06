@@ -36,6 +36,6 @@ app.use('/auth', verify, authRouter)
 app.use('/unauth', unauthRouter)
 
 server.listen(process.env.PORT, () =>
-  console.log(`Listening at ${process.env.PORT}`)
+  console.log(`Listening at ${process.env.PORT || 4000}`)
 )
 export const prisma = new PrismaClient()
